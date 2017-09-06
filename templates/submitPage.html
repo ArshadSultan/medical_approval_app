@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+ 		<script type=text/javascript>
+		var selectedPatient = "";
+		var selectedDocument = "";
+$(document).on("click","tr.patientrows td", function(e){
+		selectedPatient = e.target.innerHTML;
+	$.getJSON('/selectPatient', {
+				  patientId: e.target.innerHTML,
+				}, function(data) {
+					$("#approved > tbody").html("");
+					statement = '<tr><th>Id</th><th>Name</th><th>Content</th></tr>'
+					$('#approved').append(statement);
+					for (ds in data['result'][0]){
+					doc = data['result'][0][ds];
+					statement = '<tr><td>' + doc[0] +'</td><td> ' + doc[1] +'</td><td> ' + doc[2] +'</td></tr>'
+					$('#approved tbody').append(statement);
+					};
+					$("#unvisited > tbody").html("");
+					statement = '<tr><th>Id</th><th>Name</th></tr>'
+					$('#unvisited').append(statement);
+					for (ds in data['result'][1]){
+					doc = data['result'][1][ds];
+					statement = '<tr class = "unvisitedrows"><td>' + doc[0] +'</td><td> ' + doc[1] +'</td></tr>'
+					$('#unvisited tbody').append(statement);
+					};
+				});
+});
+$(document).on("click","tr.unvisitedrows td", function(e){
+		selectedDocument = e.target.innerHTML;
+});
+
+$(document).on("click","button.submitForApproval", function(e){
+		if (selectedDocument != ''){
+		$.getJSON('/submitForApproval', {
+				  patientId: selectedPatient,
+				  documentId: selectedDocument
+				}, function(data) {
+					});
+				};
+});
+
+	</script>
+     <style>
+	
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+	width: 50%
+}
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+table#t01 {
+    width: 100%;    
+    background-color: #f1f1c1;
+}
+.logOut {
+	position: absolute;
+    top: 0%;
+    right: 0%;
+	border: none;
+    padding: 5px 16px;
+    text-align: right;
+    display: inline-block;
+    font-size: 12px;
+    margin: 4px 2px;
+    cursor: pointer;
+</style>
+    
+  </head>
+<body>
+<div>
+
+
+<form action="{{ url_for('logoutPage') }}" method="POST">
+<input type="submit" class="logOut" value="Log Out">
+<h1> Welcome {{ session['username'] }}</h1>
+</div>
+<div>
+<h1>please select a patient</h1>
+     <table id="t01">
+		  <tr>
+    <th>Id</th>
+    <th>Name</th>
+  </tr>
+         <tbody>
+         {% for patient in patients %}
+             <tr class="patientrows"><td>{{ patient[0] }}</td>
+			 <td>{{ patient[1] }}</td>
+			 </tr>
+         {% endfor %}
+         </tbody>
+     </table>
+	 </div >
+
+	 <div style="display: inline-block;">
+		{% if session['userType'] == "2" %}
+		<h1>Unrequested Records</h1>
+		{% else %}
+		<h1>Unrequested prescriptions</h1>
+		{% endif %}	
+			<button type="button" class = "submitForApproval">Submit For Approval</button>
+	     <table id="unvisited" >
+		
+<tr><th>Id</th><th>Name</th></tr>
+     </table>
+	
+	  </div >
+	  <div style="float:right;">
+	  	{% if session['userType'] == "2" %}
+		<h1>Approved Records</h1>
+		{% else %}
+		<h1>Approved prescriptions</h1>
+		{% endif %}
+	  	     <table id="approved">
+<tr><th>Id</th><th>Name</th><th>Content</th></tr>
+
+     </table>
+	  
+	  </div>
+ </body>
+ </html>
